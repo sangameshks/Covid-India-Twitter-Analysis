@@ -1,0 +1,65 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr  8 22:26:01 2020
+
+@author: Sangamesh K S
+"""
+
+from twitterscraper import query_tweets
+import datetime as dt
+import pandas as pd
+import nltk as np
+from textblob import TextBlob
+from string import digits
+from nltk.corpus import stopwords 
+from nltk.tokenize import word_tokenize 
+from wordcloud import WordCloud, STOPWORDS 
+import matplotlib.pyplot as plt 
+import string
+from nltk import FreqDist
+import re
+
+begin_date = dt.date(2020,1,1)
+limts=1000
+langs='english'
+tweets = query_tweets("covidindia",begindate = begin_date,lang = langs)
+tweets_pd = pd.DataFrame(t.__dict__ for t in tweets)
+
+#tweets_pd.to_csv (r'C:\Users\DELL\Desktop\export_dataframe.csv',
+          #        index = False,
+          #        header=True)
+#tweets_pd = pd.read_csv(r'C:\Users\DELL\Desktop\export_dataframe.csv')
+df = tweets_pd[['text']]
+df = ','.join(df.text) 
+ndf = df.lower()
+nndf = re.sub('[^a-zA-Z]+', ' ', ndf)
+
+mndf= nndf.translate(str.maketrans('', '', string.punctuation))
+remove_digits = str.maketrans('', '', digits)
+tndf=mndf.translate(remove_digits)
+n = tndf.replace('covidindia', '')
+n = n.replace('covid','')
+n = n.replace('corona','')
+n = n.replace('coronavirusindia','')
+n = n.replace('coronavirus','')
+n = n.replace('virusupdate','')
+n = n.replace('virusindia','')
+n = n.replace('https','')
+n = n.replace('twitter','')
+
+word_tokens = word_tokenize(n)
+tokens_without_sw = [word for word in word_tokens 
+                     if not word in stopwords.words()]
+
+
+wordcloud = WordCloud().generate(str(tokens_without_sw))
+
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+
+dfl= FreqDist(tokens_without_sw)
+dfl.plot(50)
+#wc = WordCloud()
+#img = wc.generate_from_text(' '.join(dfl))
+#img.to_file('worcloud.jpeg')
